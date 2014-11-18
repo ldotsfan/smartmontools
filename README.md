@@ -3,19 +3,19 @@ smartmontools
 
 Sample usage:
 
-smartctl -g security <device>
+smartctl -g security device
 
-smartctl -s security-setpass,<PASSWORD> <device>
+smartctl -s security-setpass,PASSWORD device
 
-smartctl -s security-unlock,<PASSWORD> <device>
+smartctl -s security-unlock,PASSWORD device
 
-smartctl -s security-disable,<PASSWORD> <device>
+smartctl -s security-disable,PASSWORD device
 
-smartctl -s security-eeprom-setpass,<EEPROMFILENAME> <device>
+smartctl -s security-eeprom-setpass,EEPROMFILENAME device
 
-smartctl -s security-eeprom-unlock,<EEPROMFILENAME> <device>
+smartctl -s security-eeprom-unlock,EEPROMFILENAME device
 
-smartctl -s security-eeprom-disable,<EEPROMFILENAME> <device>
+smartctl -s security-eeprom-disable,EEPROMFILENAME device
 
 Examples:
 

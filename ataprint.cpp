@@ -2795,6 +2795,26 @@ int ataPrintMain (ata_device * device, const ata_print_options & options)
       pout("ATA Security unlock\n");
   }
 
+  if (options.set_security_erase) {
+    char password[33]="XBOXSCENE";
+    strcpy(password,options.set_security_password);
+    if (!ata_security_command(device, ATA_OP_SECURITY_ERASE_UNIT,password)) {
+        pout("ATA SECURITY ERASE UNIT failed: %s\n", device->get_errmsg());
+        returnval |= FAILSMART;
+    }
+    else
+      pout("ATA Security disabled\n");
+  }
+  if (options.set_enhanced_erase) {
+  char password[33]="XBOXSCENE";
+    strcpy(password,options.set_security_password);
+    if (!ata_security_command(device, ATA_OP_SECURITY_ERASE_UNIT,password)) {
+        pout("ATA SECURITY ERASE UNIT failed: %s\n", device->get_errmsg());
+        returnval |= FAILSMART;
+    }
+    else
+      pout("ATA Security disabled\n");
+  }
 // ATA security
   if (options.set_security_disable) {
     char password[33]="XBOXSCENE";

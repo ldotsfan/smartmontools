@@ -120,7 +120,7 @@ static void Usage()
 "        Enable/disable Attribute autosave on device (on/off)\n\n"
 "  -s NAME[,VALUE], --set=NAME[,VALUE]\n"
 "        Enable/disable/change device setting: aam,[N|off], apm,[N|off],\n"
-"        lookahead,[on|off], security-freeze, security-setpass,[password] security-disable,[password] security-unlock,[password] standby,[N|off|now],\n"
+"        lookahead,[on|off], security-freeze, security-setpass,[password] security-disable,[password] security-erase,[password] security-unlock,[password] standby,[N|off|now],\n"
 "        security-eeprom-setpass,[filename] security-eeprom-disable,[filename] security-eeprom-unlock,[filename]\n"
 "        wcache,[on|off], rcache,[on|off], wcreorder,[on|off]\n\n"
   );
@@ -221,7 +221,7 @@ static std::string getvalidarglist(int opt)
   case 'g':
     return "aam, apm, lookahead, security, wcache, rcache, wcreorder";
   case opt_set:
-    return "aam,[N|off], apm,[N|off], lookahead,[on|off], security-freeze, security-setpass, security-disable, security-unlock, security-eeprom-setpass, security-eeprom-disable, security-eeprom-unlock, "
+    return "aam,[N|off], apm,[N|off], lookahead,[on|off], security-freeze, security-setpass, security-erase, security-disable, security-unlock, security-eeprom-setpass, security-eeprom-disable, security-eeprom-unlock, "
            "standby,[N|off|now], wcache,[on|off], rcache,[on|off], wcreorder,[on|off]";
   case 's':
     return getvalidarglist(opt_smart)+", "+getvalidarglist(opt_set);
@@ -819,7 +819,7 @@ static const char * parse_options(int argc, char** argv,
       {
         ataopts.get_set_used = true;
         bool get = (optchar == 'g');
-        char name[16+1]; unsigned val;
+        char name[17+1]; unsigned val;
         int n1 = -1, n2 = -1, n3 = -1, len = strlen(optarg);
 		 if (!strncmp(optarg,"security-eeprom-setpass,",strlen("security-eeprom-setpass,"))) {
 				memset(ataopts.set_security_password,0,33);
@@ -831,6 +831,12 @@ static const char * parse_options(int argc, char** argv,
 				memset(ataopts.set_security_password,0,33);
 			ataopts.set_security_eeprom_disable = true;
 				strncpy(ataopts.set_security_eeprom,optarg+strlen("security-eeprom-disable,"), len-strlen("security-eeprom-disable,"));
+				}
+				else if (!strncmp(optarg,"security-erase,",strlen("security-erase,"))) {
+				memset(ataopts.set_security_password,0,33);
+				ataopts.set_security_erase = true;
+				printf("PASSWORD %s\n",ataopts.set_security_password);
+				strncpy(ataopts.set_security_password,optarg+strlen("security-erase,"), len-strlen("security-erase,"));
 				}
 				else if (!strncmp(optarg,"security-eeprom-unlock,",strlen("security-eeprom-unlock,"))) {
 				memset(ataopts.set_security_password,0,33);

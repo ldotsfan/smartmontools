@@ -792,6 +792,27 @@ int ataCheckPowerMode(ata_device * device) {
   return (int)result;
 }
 
+unsigned int get_erase_timeout_secs (ata_device * device, ata_identify_device * drive,int enhanced)
+{
+      unsigned int timeout = 0;
+      unsigned int idx = 1 + enhanced;
+
+    //  get_identify_data(fd);
+     // if (id) {
+     
+            timeout = drive->words088_255[idx];
+            if (timeout && timeout <= 0xff) {
+                  if (timeout == 0xff)
+                        timeout = 508 + 60;  /* spec says > 508 minutes */
+                  else
+                        timeout = (timeout * 2) + 5;  /* Add on a 5min margin */
+            }
+     //	 }
+      if (!timeout)
+            timeout = 2 * 60;  /* default: two hours */
+      timeout *= 60; /* secs */
+      return timeout;
+}
 // Issue a no-data ATA command with optional sector count register value
 bool ata_nodata_command(ata_device * device, unsigned char command,
                         int sector_count /* = -1 */)
@@ -806,9 +827,11 @@ bool ata_nodata_command(ata_device * device, unsigned char command,
 bool ata_security_command(ata_device * device, unsigned char command,
                      char * security_password)
 {
-  unsigned char *data; int security_master=0;
+
+  unsigned char *data; int security_master=0,enhanced_erase=0;
   data = new unsigned char [512];
-  data[0]		= security_master & 0x01;
+  data[1]		= security_master & 0x01;
+  data[0] |= enhanced_erase ? 0x02 : 0;
   memcpy(data+2, security_password, 32);
   ata_cmd_in in;
   in.in_regs.command = command;
@@ -818,6 +841,32 @@ bool ata_security_command(ata_device * device, unsigned char command,
   
   return device->ata_pass_through(in);
 }
+
+bool ata_security_erase(ata_device * device, ata_identify_device * drive, unsigned char command,char * security_password)
+{
+	if (command == ATA_OP_SECURITY_ERASE_UNIT) {
+            	  unsigned int timeout = get_erase_timeout_secs(device, drive, 0);
+                  unsigned char args[4] = {ATA_OP_SECURITY_ERASE_PREPARE,0,0,0};
+		  unsigned char *data;
+		  int enhanced_erase=0;
+		  data = new unsigned char [512];
+		  data[0] |= enhanced_erase ? 0x02 : 0;
+		  memcpy(data+2, security_password, 32);
+		  ata_cmd_in in;
+		  in.in_regs.command = command;
+		  in.in_regs.sector_count = 1;
+		 
+		  in.set_data_out(data, 1);
+		  if (!device->ata_pass_through(in))
+ 	                 perror("ERASE_PREPARE");
+ 	          else 
+                    if (ata_security_command(device,command,security_password)) 
+                        perror("SECURITY_ERASE");
+                    
+                  
+      }
+}
+
 static void read_eeprom_file(char * filename,EEPROMDATA * eeprom)
 {
 		FILE * fp = fopen(filename,"r+");
